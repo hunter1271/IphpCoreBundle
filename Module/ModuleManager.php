@@ -5,9 +5,9 @@
  * Time: 13:18
  */
 
-
 namespace Iphp\CoreBundle\Module;
 
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Finder\Finder;
@@ -156,13 +156,17 @@ class ModuleManager extends ContainerAware
      * @param \Application\Iphp\CoreBundle\Entity\Rubric $rubric
      * @return \Iphp\CoreBundle\Module\Module
      */
-    function getModuleFromRubric(\Application\Iphp\CoreBundle\Entity\Rubric $rubric)
+    public function getModuleFromRubric(\Application\Iphp\CoreBundle\Entity\Rubric $rubric)
     {
         $moduleClassName = $rubric->getControllerName();
         if (!$moduleClassName) return null;
 
         $module = $this->getModuleInstance($moduleClassName);
         if (!$module) return null;
+
+        if ($module instanceof ContainerAwareInterface) {
+            $module->setContainer($this->container);
+        }
 
         return $module->setRubric($rubric);
     }
@@ -171,7 +175,7 @@ class ModuleManager extends ContainerAware
      * @param $moduleClassName
      * @return \Iphp\CoreBundle\Module\Module
      */
-    function getModuleInstance($moduleClassName)
+    protected function getModuleInstance($moduleClassName)
     {
         if (!class_exists($moduleClassName, true)) {
             return null;
